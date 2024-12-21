@@ -35,9 +35,25 @@ struct IPInfo: Decodable {
     let risk:           Optional<RiskInfo>
 }
 
+func queryBulkIP(ips: [String]) async throws -> [IPInfo] {
+    let url = URL(string: BaseURL + "/\(ips.joined(separator: ","))")!
+    let (data, _) = try await URLSession.shared.data(from: url)
+    let decoded = try JSONDecoder().decode([IPInfo].self, from: data)
+    return decoded
+}
+
 func queryIP(ip: String) async throws -> IPInfo {
     let url = URL(string: BaseURL + "/\(ip)")!
     let (data, _) = try await URLSession.shared.data(from: url)
     let decoded = try JSONDecoder().decode(IPInfo.self, from: data)
     return decoded
+}
+
+func queryOwnIP() async throws -> String {
+    let url = URL(string: BaseURL + "/")!
+    let (data, _) = try await URLSession.shared.data(from: url)
+    guard let ip = String(data: data, encoding: .utf8) else {
+        throw URLError(.badServerResponse)
+    }
+    return ip
 }
